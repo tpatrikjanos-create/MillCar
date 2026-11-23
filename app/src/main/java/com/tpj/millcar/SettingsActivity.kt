@@ -23,6 +23,19 @@ class SettingsActivity : Activity() {
     private lateinit var box: LinearLayout
     private lateinit var statusTv: TextView
     private lateinit var carTv: TextView
+    private lateinit var wazeTv: TextView
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(rc: Int, res: Int, data: Intent?) {
+        super.onActivityResult(rc, res, data)
+        val uri = data?.data
+        if (rc == 10 && res == RESULT_OK && uri != null) {
+            runCatching { contentResolver.takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION) }
+            App.I.setPref("bg_uri", uri.toString())
+            App.main?.loadBackground()
+            refresh()
+        }
+    }
 
     override fun onCreate(b: Bundle?) {
         super.onCreate(b)
@@ -35,6 +48,21 @@ class SettingsActivity : Activity() {
         head("Autó Bluetooth")
         carTv = add(label("", 14f, DIM))
         add(button("Eszköz kiválasztása") { pickCar() })
+
+        head("Megjelenés")
+        add(button("Háttérkép választása a galériából") {
+            startActivityForResult(Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/*"), 10)
+        })
+        add(button("Háttérkép törlése") { App.I.setPref("bg_uri", ""); App.main?.loadBackground(); refresh() })
+
+        head("Waze elhelyezése")
+        wazeTv = add(label("", 14f, DIM))
+        add(button("Lebegő ablak / osztott képernyő váltás") {
+            App.I.setPref("waze_mode", if (App.I.pref("waze_mode", "float") == "float") "split" else "float"); refresh()
+        })
+        add(button("Root használata be / ki") {
+            App.I.setPref("use_root", if (App.I.pref("use_root", "1") == "1") "0" else "1"); refresh()
+        })
 
         head("Kulcsok")
         val api = field("Claude API kulcs (sk-ant-…)", "api_key", true)
@@ -80,6 +108,9 @@ class SettingsActivity : Activity() {
     private fun refresh() {
         val car = App.I.pref("car_name")
         carTv.text = if (car.isEmpty()) "Nincs kiválasztva" else "Kiválasztva: $car"
+        wazeTv.text = (if (App.I.pref("waze_mode", "float") == "float") "Mód: lebegő ablak" else "Mód: osztott képernyő") +
+            (if (App.I.pref("use_root", "1") == "1") " · root: be" else " · root: ki") +
+            (if (App.I.pref("bg_uri").isNotEmpty()) " · van háttérkép" else "")
         fun ok(b: Boolean) = if (b) "✓" else "✗"
         fun perm(p: String) = checkSelfPermission(p) == PackageManager.PERMISSION_GRANTED
         val nm = getSystemService(NotificationManager::class.java)

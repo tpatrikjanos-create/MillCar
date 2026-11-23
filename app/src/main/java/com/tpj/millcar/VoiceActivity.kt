@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
@@ -40,7 +39,7 @@ class VoiceActivity : Activity() {
         status = label("…", 20f).apply {
             gravity = Gravity.CENTER
             val p = dp(18); setPadding(p, p, p, p)
-            background = GradientDrawable().apply { cornerRadius = dp(20).toFloat(); setColor(CARD) }
+            background = neonBox(20)
         }
         root.addView(status, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT,
             Gravity.BOTTOM).apply { val m = dp(16); setMargins(m, m, m, m) })
